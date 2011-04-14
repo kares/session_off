@@ -16,7 +16,8 @@ class SessionOffTest < ActionController::TestCase
 
   class TestController < ActionController::Base
 
-    session :off, :except => [ :on ],
+    session :off, :secure => false,
+            :except => [ :on ],
             :if => Proc.new { |request| ! request.parameters[:force_session] }
 
     def on
@@ -68,5 +69,31 @@ class SessionOffTest < ActionController::TestCase
     @request.expects(:reset_session).once
     get :reset, :force_session => '1'
   end
-  
+
+  test "global session options are available" do
+    session_options = ActionController::Base.session_options.dup
+    begin
+      ActionController::Base.session_options.merge!({ :domain => ".test.host" })
+      get :on
+      assert @request.session_options
+      assert_equal '.test.host', @request.session_options[:domain]
+    ensure
+      ActionController::Base.session_options.clear
+      ActionController::Base.session_options.merge!(session_options)
+    end
+  end
+
+  test "global session options get merged" do
+    session_options = ActionController::Base.session_options.dup
+    begin
+      ActionController::Base.session_options.merge!({ :secure => true })
+      get :on
+      assert @request.session_options
+      assert_equal true, @request.session_options[:secure]
+    ensure
+      ActionController::Base.session_options.clear
+      ActionController::Base.session_options.merge!(session_options)
+    end
+  end
+
 end

@@ -1,7 +1,9 @@
 module SessionOff
 
   def self.included(base)
-    base.extend ClassMethods
+    base.class_eval do
+      extend ClassMethods
+    end
   end
 
   def initialize
@@ -70,6 +72,7 @@ module SessionOff
 
     def session_options_for(request, action)
       session_options_array = read_inheritable_attribute(:session_options)
+      session_options = ActionController::Base.session_options
 
       if session_options_array.blank?
         session_options
@@ -78,23 +81,22 @@ module SessionOff
 
         action = action.to_s
         session_options_array.each do |opts|
-          next if opts[:if] && !opts[:if].call(request)
+          next if opts[:if] && ! opts[:if].call(request)
           if opts[:only] && opts[:only].include?(action)
             options.merge!(opts)
-          elsif opts[:except] && !opts[:except].include?(action)
+          elsif opts[:except] && ! opts[:except].include?(action)
             options.merge!(opts)
-          elsif !opts[:only] && !opts[:except]
+          elsif ! opts[:only] && ! opts[:except]
             options.merge!(opts)
           end
         end
 
-        if options.empty? then options
-        else
-          options.delete :only
-          options.delete :except
-          options.delete :if
-          options[:disabled] ? nil : options
-        end
+        return options if options.empty?
+
+        options.delete(:only)
+        options.delete(:except)
+        options.delete(:if)
+        options[:disabled] ? nil : options
       end
     end
 
