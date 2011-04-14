@@ -96,4 +96,17 @@ class SessionOffTest < ActionController::TestCase
     end
   end
 
+  test "request session options are merged" do
+    session_options = @request.session_options.dup
+    begin
+      @request.session_options[:bar] = 'foo'
+      get :on
+      assert @request.session_options
+      assert_equal 'foo', @request.session_options[:bar]
+    ensure
+      @request.session_options.clear
+      @request.session_options.merge!(session_options)
+    end
+  end
+
 end

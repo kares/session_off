@@ -91,12 +91,10 @@ module SessionOff
           end
         end
 
-        return options if options.empty?
-
         options.delete(:only)
         options.delete(:except)
         options.delete(:if)
-        options[:disabled] ? nil : options
+        options
       end
     end
 
@@ -111,8 +109,8 @@ module SessionOff
     def process(request, response, method = :perform_action, *arguments)
       action = request.parameters["action"] || "index"
       session_options = self.class.session_options_for(request, action)
-      request.session_options = session_options if session_options
-      @_session_enabled = !! session_options
+      request.session_options.merge! session_options
+      @_session_enabled = ! session_options[:disabled]
       super(request, response, method, *arguments)
     end
     
