@@ -1,0 +1,133 @@
+module SessionOff
+
+  def self.included(base)
+    base.extend ClassMethods
+  end
+
+  def initialize
+    super.tap do
+      # TODO is there no other way for 2.3.x ?!
+      extend InstanceMethods
+    end
+  end
+
+  module ClassMethods
+
+    # Specify how sessions ought to be managed for a subset of the actions on
+    # the controller. Like filters, you can specify <tt>:only</tt> and
+    # <tt>:except</tt> clauses to restrict the subset, otherwise options
+    # apply to all actions on this controller.
+    #
+    # The session options are inheritable, as well, so if you specify them in
+    # a parent controller, they apply to controllers that extend the parent.
+    #
+    # Usage:
+    #
+    #   # turn off session management for all actions.
+    #   session :off
+    #
+    #   # turn off session management for all actions _except_ foo and bar.
+    #   session :off, :except => %w(foo bar)
+    #
+    #   # turn off session management for only the foo and bar actions.
+    #   session :off, :only => %w(foo bar)
+    #
+    #   # the session will only work over HTTPS, but only for the foo action
+    #   session :only => :foo, :session_secure => true
+    #
+    #   # the session by default uses HttpOnly sessions for security reasons.
+    #   # this can be switched off.
+    #   session :only => :foo, :session_http_only => false
+    #
+    #   # the session will only be disabled for 'foo', and only if it is
+    #   # requested as a web service
+    #   session :off, :only => :foo,
+    #           :if => Proc.new { |req| req.parameters[:ws] }
+    #
+    #   # the session will be disabled for non html/ajax requests
+    #   session :off,
+    #     :if => Proc.new { |req| !(req.format.html? || req.format.js?) }
+    #
+    #   # turn the session back on, useful when it was turned off in the
+    #   # application controller, and you need it on in another controller
+    #   session :on
+    #
+    # All session options described for ActionController::Base.process_cgi
+    # are valid arguments.
+    def session(*args)
+      options = args.extract_options!
+
+      options[:disabled] = false if args.delete(:on)
+      options[:disabled] = true unless args.empty?
+      options[:only] = [*options[:only]].map { |o| o.to_s } if options[:only]
+      options[:except] = [*options[:except]].map { |o| o.to_s } if options[:except]
+      if options[:only] && options[:except]
+        raise ArgumentError, "only one of either :only or :except are allowed"
+      end
+
+      write_inheritable_array(:session_options, [ options ])
+    end
+
+    def session_options_for(request, action)
+      session_options_array = read_inheritable_attribute(:session_options)
+
+      if session_options_array.blank?
+        session_options
+      else
+        options = session_options.dup
+
+        action = action.to_s
+        session_options_array.each do |opts|
+          next if opts[:if] && !opts[:if].call(request)
+          if opts[:only] && opts[:only].include?(action)
+            options.merge!(opts)
+          elsif opts[:except] && !opts[:except].include?(action)
+            options.merge!(opts)
+          elsif !opts[:only] && !opts[:except]
+            options.merge!(opts)
+          end
+        end
+
+        if options.empty? then options
+        else
+          options.delete :only
+          options.delete :except
+          options.delete :if
+          options[:disabled] ? nil : options
+        end
+      end
+    end
+
+  end
+
+  module InstanceMethods
+
+    def session_enabled?
+      defined?(@_session_enabled) ? @_session_enabled : true
+    end
+
+    def process(request, response, method = :perform_action, *arguments)
+      action = request.parameters["action"] || "index"
+      session_options = self.class.session_options_for(request, action)
+      request.session_options = session_options if session_options
+      @_session_enabled = !! session_options
+      super(request, response, method, *arguments)
+    end
+    
+    def reset_session
+      super if session_enabled?
+    end
+
+    protected
+
+      def assign_shortcuts(request, response)
+        super
+        unless session_enabled?
+          # session disabled for this action :
+          @_session = @_response.session = nil
+        end
+      end
+
+  end
+
+end
