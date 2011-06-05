@@ -2,14 +2,31 @@ module SessionOff
 
   def self.included(base)
     base.class_eval do
+      
       extend ClassMethods
-    end
-  end
-
-  def initialize
-    super.tap do
-      # TODO is there no other way for 2.3.x ?!
-      extend InstanceMethods
+      
+      if instance_methods(false).include?('session_enabled?')
+        # remove the deprecation from Rails 2.3 :
+        remove_method 'session_enabled?'
+      end
+      if instance_methods(false).include?('reset_session')
+        # we'll have our own that respects session_enabled?
+        # Rails 2.3 has this method Rails 3 doesn't ...
+        remove_method 'reset_session'
+      end
+      # attr_internal on ActionController::Base for Rails 2.3.x
+      # Rails 3+ delegate :session, :to => "@_request" on Metal
+      clazz = self
+      while ! clazz.instance_methods(false).include?('session')
+        clazz = clazz.superclass
+      end
+      clazz.send :remove_method, :'session'
+      
+      include InstanceMethods
+      
+      alias_method_chain(:assign_shortcuts, :session_off) rescue NameError
+      alias_method_chain(:process, :session_off)
+      
     end
   end
 
@@ -72,12 +89,14 @@ module SessionOff
 
     def session_options_for(request, action)
       session_options_array = read_inheritable_attribute(:session_options)
-      session_options = ActionController::Base.session_options
+      session_options = 
+        defined?(ActionController::Base.session_options) ? 
+          ActionController::Base.session_options.dup : {}
 
       if session_options_array.blank?
         session_options
       else
-        options = session_options.dup
+        options = session_options
 
         action = action.to_s
         session_options_array.each do |opts|
@@ -97,37 +116,58 @@ module SessionOff
         options
       end
     end
-
+    
   end
 
   module InstanceMethods
-
-    def session_enabled?
-      defined?(@_session_enabled) ? @_session_enabled : true
-    end
-
-    def process(request, response, method = :perform_action, *arguments)
-      action = request.parameters["action"] || "index"
-      session_options = self.class.session_options_for(request, action)
-      request.session_options.merge! session_options
-      @_session_enabled = ! session_options[:disabled]
-      super(request, response, method, *arguments)
-    end
     
-    def reset_session
-      super if session_enabled?
+    def session_enabled?
+      @_session != false
     end
 
-    protected
+    def session
+      @_session == false ? nil : @_session ||= request.session
+    end
 
-      def assign_shortcuts(request, response)
-        super
-        unless session_enabled?
-          # session disabled for this action :
-          @_session = @_response.session = nil
-        end
+    def reset_session
+      if session_enabled?
+        request.reset_session
+        @_session = nil
+      end
+    end
+
+    def disable_session
+      @_session = false
+    end
+
+    if defined?(AbstractController::Base) # Rails 3+
+
+      def process_with_session_off(action, *args)
+        session_options = self.class.session_options_for(request, action)
+        request.session_options.merge! session_options
+        disable_session if session_options[:disabled]
+        process_without_session_off(action, *args)
       end
 
+    else # Rails 2.3.x
+
+      def process_with_session_off(request, response, method = :perform_action, *args)
+        action = request.parameters["action"] || :index
+        session_options = self.class.session_options_for(request, action)
+        request.session_options.merge! session_options
+        #@_session = false if session_options[:disabled]
+        process_without_session_off(request, response, method, *args)
+      end
+
+      private
+      
+        def assign_shortcuts_with_session_off(request, response)
+          assign_shortcuts_without_session_off(request, response)
+          disable_session if request.session_options[:disabled]
+        end
+
+    end
+    
   end
 
 end
