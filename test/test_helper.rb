@@ -31,8 +31,6 @@ require 'active_support'
 require 'active_support/test_case'
 require 'action_controller'
 require 'action_controller/test_case'
-#require 'action_controller/cgi_ext'
-#require 'action_controller/test_process'
 
 require 'rails/version'
 puts "emulating Rails.version = #{Rails::VERSION::STRING}"
@@ -53,7 +51,9 @@ ActionController::Routing::Routes.reload rescue nil
 
 if Rails::VERSION::MAJOR >= 3
   require 'rails'
-  require 'rails/all'
+  # a minimal require 'rails/all' :
+  require "action_controller/railtie"
+  require "rails/test_unit/railtie"
   require 'rails/test_help'
 else
   module Rails
@@ -148,3 +148,18 @@ end
 # call the plugin's init.rb - thus it's setup as it would in a rails app :
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
 require File.join(File.dirname(__FILE__), '../init')
+
+ActionController::TestCase.class_eval do
+  
+  attr_reader :request, :response
+  @@session_options = nil
+  
+  def save_session_options
+    @@session_options = request.session_options.dup
+  end
+
+  def restore_session_options
+    request.session_options = @@session_options
+  end
+  
+end

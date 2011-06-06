@@ -6,26 +6,27 @@ module SessionOff
       extend ClassMethods
       
       if instance_methods(false).include?('session_enabled?')
-        # remove the deprecation from Rails 2.3 :
+        # remove the "deprecation" Rails 2.3 (can't override) :
         remove_method 'session_enabled?'
       end
       if instance_methods(false).include?('reset_session')
         # we'll have our own that respects session_enabled?
-        # Rails 2.3 has this method Rails 3 doesn't ...
+        # Rails 2.3 has this method in ActionController::Base
         remove_method 'reset_session'
       end
       # attr_internal on ActionController::Base for Rails 2.3.x
-      # Rails 3+ delegate :session, :to => "@_request" on Metal
+      # 3+ : `delegate :session, :to => "@_request"` from Metal
       clazz = self
-      while ! clazz.instance_methods(false).include?('session')
+      while clazz && ! clazz.instance_methods(false).include?('session')
         clazz = clazz.superclass
       end
-      clazz.send :remove_method, :'session'
+      clazz.send(:remove_method, :'session') if clazz
       
       include InstanceMethods
-      
-      alias_method_chain(:assign_shortcuts, :session_off) rescue NameError
+
       alias_method_chain(:process, :session_off)
+      # yet another Rails 2.3 specific hook :
+      alias_method_chain(:assign_shortcuts, :session_off) rescue NameError
       
     end
   end
@@ -109,7 +110,7 @@ module SessionOff
             options.merge!(opts)
           end
         end
-
+        
         options.delete(:only)
         options.delete(:except)
         options.delete(:if)

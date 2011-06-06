@@ -26,20 +26,17 @@ class SessionOffTest < ActionController::TestCase
       head :ok
     end
 
+    def disable_session
+      super
+      @disable_session = true
+    end
+    
   end
 
   tests TestController
   
-  attr_reader :request, :response
-  @@session_options = nil
-  
-  def setup
-    @@session_options = request.session_options.dup
-  end
-
-  def teardown
-    request.session_options = @@session_options
-  end
+  setup :save_session_options
+  teardown :restore_session_options
   
   test "session is on" do
     get :on
@@ -70,9 +67,9 @@ class SessionOffTest < ActionController::TestCase
   end
 
   test "request session options are merged" do
-    session_options = @request.session_options.dup
+    session_options = request.session_options.dup
     begin
-      @request.session_options[:bar] = 'foo'
+      request.session_options[:bar] = 'foo'
       get :on
       assert request.session_options
       assert_equal 'foo', request.session_options[:bar]
@@ -108,6 +105,16 @@ class SessionOffTest < ActionController::TestCase
       end
     end
 
+  end
+  
+  test "disable session is called when turning session off" do
+    get :off
+    assert_equal true, @controller.instance_variable_get(:@disable_session)
+  end
+
+  test "disable session is not called when session on" do
+    get :on
+    assert_equal nil, @controller.instance_variable_get(:@disable_session)
   end
   
 end
