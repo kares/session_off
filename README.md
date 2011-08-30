@@ -14,13 +14,13 @@ to track down "bugs" where You access the session while not really wanting to !
 
 How about we bring the love back and allow (once again) for a session to be off :
 
-    session :off                     # turn session management off
+    session :off                     # turn session off for all actions
     session :off, :only => :bar      # only for :bar action
     session :off, :except => :bar    # except for :bar action
     session :only => :foo,           # on for :foo when doing HTTPS
             :session_secure => true 
-    session :off, :only => :foo,     # off for foo, if uses as web service
-            :if => Proc.new { |req| req.parameters[:ws] }
+    session :off, :only => :foo,     # off for :foo, if :bar parameter present
+            :if => Proc.new { |req| req.params[:bar].present? }
 
 **NOTE:** Keep in mind that after installing the plugin `session` might be nil !
 But only while using the `session` (instance) method in controllers, it does
@@ -50,11 +50,13 @@ If unhappy with what happens while the session is turned off for an action :
 Install
 =======
 
-Installable as a plain-old rails plugin:
+    gem 'session_off'
+
+or as a plain-old rails plugin :
 
     script/plugin install git://github.com/kares/session_off.git
 
-The plugin has been tested and should work on Rails **3.0** as well as **2.3**.
+The code has been tested and should work on Rails **3.x** as well as **2.3**.
 
 Example
 =======

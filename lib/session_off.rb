@@ -172,3 +172,6 @@ module SessionOff
   end
 
 end
+
+require 'action_controller/base'
+ActionController::Base.send :include, SessionOff
