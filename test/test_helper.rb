@@ -145,11 +145,7 @@ else # since Rails 3.0.0 :
 
 end
 
-# call the plugin's init.rb - thus it's setup as it would in a rails app :
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
-require File.join(File.dirname(__FILE__), '../init')
-
-ActionController::TestCase.class_eval do
+class ActionController::TestCase
   
   attr_reader :request, :response
   @@session_options = nil
@@ -163,3 +159,6 @@ ActionController::TestCase.class_eval do
   end
   
 end
+
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
+require 'session_off'
