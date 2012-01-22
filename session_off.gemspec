@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "session_off"
-  s.version     = '0.3.1'
+  s.version     = '0.4'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Karol Bucek"]
   s.email       = ["self@kares.org"]

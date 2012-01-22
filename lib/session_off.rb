@@ -33,6 +33,23 @@ module SessionOff
 
   module ClassMethods
 
+    def self.extended(base)
+      return if base.respond_to?(:session_options_array)
+      if base.respond_to?(:class_attribute)
+        base.class_attribute :session_options_array, 
+                             :instance_reader => false, :instance_writer => false
+      else
+        base.class_eval do
+          def session_options_array
+            read_inheritable_attribute(:session_options)
+          end
+          def session_options_array=(array)
+            write_inheritable_array(:session_options, array)
+          end
+        end
+      end
+    end
+    
     # Specify how sessions ought to be managed for a subset of the actions on
     # the controller. Like filters, you can specify <tt>:only</tt> and
     # <tt>:except</tt> clauses to restrict the subset, otherwise options
@@ -84,12 +101,15 @@ module SessionOff
       if options[:only] && options[:except]
         raise ArgumentError, "only one of either :only or :except are allowed"
       end
-
-      write_inheritable_array(:session_options, [ options ])
+      
+      if session_options_array
+        self.session_options_array += [ options ]
+      else
+        self.session_options_array  = [ options ]
+      end
     end
 
     def session_options_for(request, action)
-      session_options_array = read_inheritable_attribute(:session_options)
       session_options = 
         defined?(ActionController::Base.session_options) ? 
           ActionController::Base.session_options.dup : {}
