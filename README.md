@@ -29,7 +29,7 @@ work (and load the session) no matter if the session is off. This is intentional
 as the goal of the plugin is to provide session management for controller code 
 and not the whole middleware stack.
 I also highly discourage against using `session` inside model classes, as it is a 
-lack of good desing, after all session's just an abstracted request "extension".
+lack of good design, after all session's just an abstracted request "extension".
 
 If in a need to check for a "disabled" session state from a request use :
 
