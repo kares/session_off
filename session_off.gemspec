@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 Gem::Specification.new do |s|
   s.name        = "session_off"
   s.version     = '0.4'
@@ -13,7 +14,6 @@ Gem::Specification.new do |s|
   s.test_files   = Dir.glob("test/*.rb")
  
   s.add_dependency 'actionpack', '>= 2.3'
-  s.add_development_dependency "mocha"
   
   s.extra_rdoc_files = [ "README.md" ]
   s.rubyforge_project = '[none]'
