@@ -47,7 +47,8 @@ else
 end
 
 ActionController::Base.logger = nil
-ActionController::Routing::Routes.reload rescue nil
+routing = ActionDispatch::Routing rescue ActionController::Routing
+routing::Routes.reload rescue nil
 
 if Rails::VERSION::MAJOR >= 3
   require 'rails'
@@ -137,10 +138,19 @@ else # since Rails 3.0.0 :
     end
   end
 
+  SessionOff::Application.configure do
+    config.cache_classes = true
+    config.eager_load = true rescue nil
+  end
+
   # Initialize the rails application
   SessionOff::Application.initialize!
   SessionOff::Application.routes.draw do
-    match '/:controller(/:action(/:id))'
+    begin
+      get "/:controller(/:action(/:id))" # 4.0
+    rescue
+      match '/:controller(/:action(/:id))'
+    end
   end
 
 end
