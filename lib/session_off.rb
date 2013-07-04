@@ -165,7 +165,17 @@ module SessionOff
 
       def process_with_session_off(action, *args)
         session_options = self.class.session_options_for(request, action)
-        request.session_options.merge! session_options
+        case request.session_options
+          # Rails 4 compatible
+          when ActionDispatch::Request::Session::Options
+          then request.session_options.instance_variable_set(
+              :@delegate,
+              request.session_options.instance_variable_get(:@delegate).merge!(session_options)
+          )
+          #Rails 3.2 compatible
+          else
+            request.session_options.merge! session_options
+        end
         disable_session if session_options[:disabled]
         process_without_session_off(action, *args)
       end
