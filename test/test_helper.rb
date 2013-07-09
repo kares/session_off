@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'bundler/setup'
 
 require 'yaml'
 require 'stringio'
@@ -9,34 +10,11 @@ rescue LoadError
   require 'mocha'
 end
 
-version =
-  if ARGV.find { |opt| /RAILS_VERSION=([\d\.]+)/ =~ opt }
-    $~[1]
-  else
-    ENV['RAILS_VERSION'] # rake test RAILS_VERSION=2.3.5
-  end
-
-if version
-  RAILS_VERSION = version
-  gem 'activesupport', "= #{RAILS_VERSION}"
-  gem 'activerecord', "= #{RAILS_VERSION}"
-  gem 'actionpack', "= #{RAILS_VERSION}"
-  gem 'actionmailer', "= #{RAILS_VERSION}"
-  gem 'rails', "= #{RAILS_VERSION}"
-else
-  gem 'activesupport'
-  gem 'activerecord'
-  gem 'actionpack'
-  gem 'actionmailer'
-  gem 'rails'
-end
-
-require 'active_support'
-
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../test')
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/setup_and_teardown/for_test_unit'
 
+require 'active_support'
 require 'active_support/test_case'
 require 'action_controller'
 require 'action_controller/test_case'
