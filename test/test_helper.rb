@@ -5,7 +5,7 @@ require 'stringio'
 require 'test/unit'
 begin
   require 'mocha/setup'
-rescue
+rescue LoadError
   require 'mocha'
 end
 
@@ -178,4 +178,4 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
 require 'session_off'
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../test')
-require 'test_session_request' if defined? ActionDispatch::Request::Session::Options
+require 'test_session_request'

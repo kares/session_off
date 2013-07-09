@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module ActionController
 
   class TestSessionStore < Rack::Session::Abstract::ID
@@ -31,9 +33,19 @@ module ActionController
       # self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
 
       store = TestSessionStore.new
-      default_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
-      session = ActionDispatch::Request::Session.create(store, env, default_options)
-      self.session = session; self.session_options = session.options
+      default_options =
+        TestSession::DEFAULT_OPTIONS rescue Rack::Session::Abstract::ID::DEFAULT_OPTIONS
+      default_options = default_options.merge(:id => SecureRandom.hex(16))
+
+      if defined? ActionDispatch::Request::Session # 4.x
+        session = ActionDispatch::Request::Session.create(store, env, default_options)
+        session_options = session.options
+      else
+        session = TestSession.new
+        session_options = default_options
+      end
+
+      self.session = session; self.session_options = session_options
     end
 
   end
