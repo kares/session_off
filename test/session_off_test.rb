@@ -2,6 +2,8 @@ require File.expand_path('test_helper', File.dirname(__FILE__))
 
 class SessionOffTest < ActionController::TestCase
 
+  include TestSessionRequest if defined? TestSessionRequest
+
   class TestController < ActionController::Base
 
     session :off, :secure => false, :except => [ :on ],
@@ -30,14 +32,14 @@ class SessionOffTest < ActionController::TestCase
       super
       @disable_session = true
     end
-    
+
   end
 
   tests TestController
-  
+
   setup :save_session_options
   teardown :restore_session_options
-  
+
   test "session is on" do
     get :on
     assert session
@@ -60,7 +62,7 @@ class SessionOffTest < ActionController::TestCase
     request.expects(:reset_session).never
     get :reset
   end
-  
+
   test "session is reset if it's on" do
     request.expects(:reset_session).once
     get :reset, :force_session => '1'
@@ -78,9 +80,9 @@ class SessionOffTest < ActionController::TestCase
       request.session_options.merge!(session_options)
     end
   end
-  
+
   if defined?(ActionController::Base.session_options)
-  
+
     test "global session options are available" do
       session_options = ActionController::Base.session_options.dup
       begin
@@ -106,7 +108,7 @@ class SessionOffTest < ActionController::TestCase
     end
 
   end
-  
+
   test "disable session is called when turning session off" do
     get :off
     assert_equal true, @controller.instance_variable_get(:@disable_session)
@@ -116,5 +118,5 @@ class SessionOffTest < ActionController::TestCase
     get :on
     assert_equal nil, @controller.instance_variable_get(:@disable_session)
   end
-  
+
 end
