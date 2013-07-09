@@ -1,4 +1,3 @@
-require 'active_support/concern'
 require 'active_support/callbacks'
 
 module ActiveSupport
@@ -7,26 +6,26 @@ module ActiveSupport
     remove_const :SetupAndTeardown
 
     module SetupAndTeardown
-      
-      extend ActiveSupport::Concern
 
-      included do
-        include ActiveSupport::Callbacks
-        define_callbacks :setup, :teardown
+      def self.included(base)
+        base.class_eval do
+          include ActiveSupport::Callbacks
+          define_callbacks :setup, :teardown
 
-        #if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
-          #include ForMiniTest
-        #else
-          begin
-            require 'test/unit/version'
-          rescue LoadError
-          end unless defined?(Test::Unit::VERSION)
-          #if defined?(Test::Unit::VERSION) # Test::Unit 2.x gem
-            include ForTestUnit
-          #else # "built-in" Test::Unit 1.2.3
-            #include ForClassicTestUnit
+          #if defined?(MiniTest::Assertions) && TestCase < MiniTest::Assertions
+            #include ForMiniTest
+          #else
+            begin
+              require 'test/unit/version'
+            rescue LoadError
+            end unless defined?(Test::Unit::VERSION)
+            #if defined?(Test::Unit::VERSION) # Test::Unit 2.x gem
+              include ForTestUnit
+            #else # "built-in" Test::Unit 1.2.3
+              #include ForClassicTestUnit
+            #end
           #end
-        #end
+        end
       end
 
       module ClassMethods
