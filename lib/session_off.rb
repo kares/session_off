@@ -2,14 +2,14 @@ module SessionOff
 
   def self.included(base)
     base.class_eval do
-      
+
       extend ClassMethods
-      
-      if instance_methods(false).include?('session_enabled?')
+
+      if instance_methods(false).map(&:to_s).include?('session_enabled?')
         # remove the "deprecation" Rails 2.3 (can't override) :
         remove_method 'session_enabled?'
       end
-      if instance_methods(false).include?('reset_session')
+      if instance_methods(false).map(&:to_s).include?('reset_session')
         # we'll have our own that respects session_enabled?
         # Rails 2.3 has this method in ActionController::Base
         remove_method 'reset_session'
@@ -17,17 +17,17 @@ module SessionOff
       # attr_internal on ActionController::Base for Rails 2.3.x
       # 3+ : `delegate :session, :to => "@_request"` from Metal
       clazz = self
-      while clazz && ! clazz.instance_methods(false).include?('session')
+      while clazz && ! clazz.instance_methods(false).map(&:to_s).include?('session')
         clazz = clazz.superclass
       end
-      clazz.send(:remove_method, :'session') if clazz
-      
+      clazz.send(:remove_method, 'session') if clazz
+
       include InstanceMethods
 
       alias_method_chain(:process, :session_off)
       # yet another Rails 2.3 specific hook :
       alias_method_chain(:assign_shortcuts, :session_off) rescue NameError
-      
+
     end
   end
 
@@ -36,7 +36,7 @@ module SessionOff
     def self.extended(base)
       return if base.respond_to?(:session_options_array)
       if base.respond_to?(:class_attribute)
-        base.class_attribute :session_options_array, 
+        base.class_attribute :session_options_array,
                              :instance_reader => false, :instance_writer => false
       else
         base.class_eval do
@@ -49,7 +49,7 @@ module SessionOff
         end
       end
     end
-    
+
     # Specify how sessions ought to be managed for a subset of the actions on
     # the controller. Like filters, you can specify <tt>:only</tt> and
     # <tt>:except</tt> clauses to restrict the subset, otherwise options
@@ -101,7 +101,7 @@ module SessionOff
       if options[:only] && options[:except]
         raise ArgumentError, "only one of either :only or :except are allowed"
       end
-      
+
       if session_options_array
         self.session_options_array += [ options ]
       else
@@ -110,8 +110,8 @@ module SessionOff
     end
 
     def session_options_for(request, action)
-      session_options = 
-        defined?(ActionController::Base.session_options) ? 
+      session_options =
+        defined?(ActionController::Base.session_options) ?
           ActionController::Base.session_options.dup : {}
 
       if session_options_array.blank?
@@ -130,18 +130,18 @@ module SessionOff
             options.merge!(opts)
           end
         end
-        
+
         options.delete(:only)
         options.delete(:except)
         options.delete(:if)
         options
       end
     end
-    
+
   end
 
   module InstanceMethods
-    
+
     def session_enabled?
       @_session != false
     end
@@ -181,14 +181,14 @@ module SessionOff
       end
 
       private
-      
+
         def assign_shortcuts_with_session_off(request, response)
           assign_shortcuts_without_session_off(request, response)
           disable_session if request.session_options[:disabled]
         end
 
     end
-    
+
   end
 
 end
