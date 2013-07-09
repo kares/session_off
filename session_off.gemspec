@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Karol Bucek"]
   s.email       = ["self@kares.org"]
   s.homepage    = "http://github.com/kares/session_off"
-  s.summary     = "declarative session :off from Rails 2.2 'backported'"
+  s.summary     = "declarative session :off 'backported' from Rails 2.2"
   s.description = "session :off, :only => :foo, :if => Proc.new { |req| req.params[:bar] }"
 
   s.files        = Dir.glob("lib/*") + %w( LICENSE README.md Rakefile )
