@@ -3,7 +3,11 @@ require 'rubygems'
 require 'yaml'
 require 'stringio'
 require 'test/unit'
-require 'mocha'
+begin
+  require 'mocha/setup'
+rescue
+  require 'mocha'
+end
 
 version =
   if ARGV.find { |opt| /RAILS_VERSION=([\d\.]+)/ =~ opt }
@@ -156,10 +160,10 @@ else # since Rails 3.0.0 :
 end
 
 class ActionController::TestCase
-  
+
   attr_reader :request, :response
   @@session_options = nil
-  
+
   def save_session_options
     @@session_options = request.session_options.dup
   end
@@ -167,7 +171,7 @@ class ActionController::TestCase
   def restore_session_options
     request.session_options = @@session_options
   end
-  
+
 end
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
