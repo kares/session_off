@@ -161,23 +161,30 @@ module SessionOff
       @_session = false
     end
 
-    if defined?(AbstractController::Base) # Rails 3+
+    if defined? AbstractController::Base # Rails 3+
 
-      def process_with_session_off(action, *args)
-        session_options = self.class.session_options_for(request, action)
-        case request.session_options
-          # Rails 4 compatible
-          when ActionDispatch::Request::Session::Options
-          then request.session_options.instance_variable_set(
-              :@delegate,
-              request.session_options.instance_variable_get(:@delegate).merge!(session_options)
-          )
-          #Rails 3.2 compatible
-          else
-            request.session_options.merge! session_options
+      if defined? ActionDispatch::Request::Session::Options # Rails 4.x
+        
+        def process_with_session_off(action, *args)
+          session_options = self.class.session_options_for(request, action)
+          request_session_options = request.session_options
+          if request_session_options.is_a?(ActionDispatch::Request::Session::Options)
+            request_session_options = request_session_options.instance_variable_get(:@delegate)
+          end
+          request_session_options.merge! session_options
+          disable_session if session_options[:disabled]
+          process_without_session_off(action, *args)
         end
-        disable_session if session_options[:disabled]
-        process_without_session_off(action, *args)
+
+      else
+
+        def process_with_session_off(action, *args)
+          session_options = self.class.session_options_for(request, action)
+          request.session_options.merge! session_options
+          disable_session if session_options[:disabled]
+          process_without_session_off(action, *args)
+        end
+
       end
 
     else # Rails 2.3.x
@@ -192,10 +199,10 @@ module SessionOff
 
       private
 
-        def assign_shortcuts_with_session_off(request, response)
-          assign_shortcuts_without_session_off(request, response)
-          disable_session if request.session_options[:disabled]
-        end
+      def assign_shortcuts_with_session_off(request, response)
+        assign_shortcuts_without_session_off(request, response)
+        disable_session if request.session_options[:disabled]
+      end
 
     end
 
