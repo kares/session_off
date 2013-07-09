@@ -32,6 +32,11 @@ else
 end
 
 require 'active_support'
+
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../test')
+require 'active_support/testing/setup_and_teardown'
+require 'active_support/testing/setup_and_teardown/for_test_unit'
+
 require 'active_support/test_case'
 require 'action_controller'
 require 'action_controller/test_case'
@@ -177,5 +182,4 @@ end
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
 require 'session_off'
 
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../test')
 require 'test_session_request'
