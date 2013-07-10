@@ -137,9 +137,7 @@ class SessionManagementTest < ActionController::TestCase # Test::Unit::TestCase
     @controller = TestController.new
 
     get :show
-    assert_nothing_raised do
-      assert_equal false, @controller.session_enabled?
-    end
+    assert_equal false, @controller.session_enabled?
   end
 
   test 'session_is_enabled' do

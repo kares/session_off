@@ -3,16 +3,16 @@ require 'bundler/setup'
 
 require 'yaml'
 require 'stringio'
-require 'test/unit'
+
+require 'minitest/autorun'
 begin
   require 'mocha/setup'
 rescue LoadError
   require 'mocha'
 end
 
+# NOTE: stub-out test/unit (Rails 2.3/3.x requires some of it)
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../test')
-require 'active_support/testing/setup_and_teardown'
-require 'active_support/testing/setup_and_teardown/for_test_unit'
 
 require 'active_support'
 require 'active_support/test_case'
@@ -21,6 +21,8 @@ require 'action_controller/test_case'
 
 require 'rails/version'
 puts "emulating Rails.version = #{Rails::VERSION::STRING}"
+
+require 'test/unit' if Rails::VERSION::MAJOR < 3
 
 require 'action_controller/integration' if Rails::VERSION::MAJOR < 3
 require 'action_controller/session_management' if Rails::VERSION::MAJOR < 3

@@ -11,8 +11,3 @@ else
 end
 
 gem 'rake', :require => nil
-
-group :test do
-  gem 'mocha', '~> 0.13.0', :require => false
-  gem 'test-unit', '2.5.4'
-end
