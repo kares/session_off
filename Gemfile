@@ -12,11 +12,11 @@ end
 
 group :development, :test do
   gem 'rake', :require => nil
-  if RUBY_VERSION =~ /1\.8/
-  	gem 'minitest', '~> 4.7.5', :require => nil
-  elsif minitest_version = ENV['MINITEST_VERSION']
+  if minitest_version = ENV['MINITEST_VERSION']
   	gem 'minitest', minitest_version, :require => nil
+  elsif RUBY_VERSION =~ /1\.8/
+  	gem 'minitest', '~> 4.7.5', :require => nil
   else
-  	gem 'minitest', '~> 5.3.4', :require => nil
+  	gem 'minitest', :require => nil
   end
 end
