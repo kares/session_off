@@ -10,4 +10,7 @@ else
   gem 'rails'
 end
 
-gem 'rake', :require => nil
+group :development, :test do
+  gem 'rake', :require => nil
+  gem 'minitest', '~> 4.7', :require => nil if RUBY_VERSION =~ /1\.8/
+end

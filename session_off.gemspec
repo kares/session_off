@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'actionpack', '>= 2.3'
   gem.add_development_dependency 'rake', '~> 10.3.2'
-  gem.add_development_dependency 'minitest', '~> 5.1'
+  gem.add_development_dependency 'minitest', '>= 4.7'
   gem.add_development_dependency 'mocha', '~> 0.13.0'
 
   gem.extra_rdoc_files = [ "README.md" ]
