@@ -87,3 +87,8 @@ class RobotsController < ApplicationController
 
 end
 ```
+
+## Copyright
+
+Copyright (c) 2014 [Karol Bucek](https://github.com/kares). 
+See LICENSE (http://www.apache.org/licenses/LICENSE-2.0) for details.
