@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |gem|
   gem.name        = "session_off"
-  gem.version     = '0.5.0'
+  gem.version     = '0.5.1'
   gem.platform    = Gem::Platform::RUBY
   gem.authors     = ["Karol Bucek"]
   gem.email       = ["self@kares.org"]
